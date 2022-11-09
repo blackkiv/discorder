@@ -2,6 +2,11 @@ use serde::Deserialize;
 
 use crate::servers::Server;
 
+/// Channel info
+/// 
+/// contains:
+/// - basic channel info
+/// - messages
 #[derive(Debug, Deserialize)]
 pub struct Channel {
     pub id: String,
