@@ -1,5 +1,11 @@
 use serde::Deserialize;
 
+// User info
+// 
+// contains:
+// - basic user info
+// - user_profile_metadata
+// - relationships
 #[derive(Debug, Deserialize)]
 pub struct User {
     pub id: String,
@@ -15,7 +21,15 @@ pub struct User {
     pub phone: Option<String>,
     pub temp_banned_until: Option<String>,
     pub ip: String,
+    pub user_profile_metadata: UserMetadata,
     pub relationships: Vec<Relationship>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UserMetadata {
+    pub user_id: String,
+    pub boosting_started_at: Option<String>,
+    pub premium_started_at: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
