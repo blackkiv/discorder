@@ -1,13 +1,13 @@
 use serde::Deserialize;
 
-// User info
-// 
-// contains:
-// - basic user info
-// - user_profile_metadata
-// - relationships
+/// Account info
+/// 
+/// contains:
+/// - basic user info
+/// - user_profile_metadata
+/// - relationships
 #[derive(Debug, Deserialize)]
-pub struct User {
+pub struct Account {
     pub id: String,
     pub username: String,
     pub discriminator: i32,
@@ -38,11 +38,11 @@ pub struct Relationship {
     #[serde(rename(deserialize = "type"))]
     pub relation_type: u32,
     pub nickname: Option<String>,
-    pub user: RelationUser,
+    pub user: User,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct RelationUser {
+pub struct User {
     pub id: String,
     pub username: String,
     pub avatar: Option<String>,
