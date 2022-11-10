@@ -20,7 +20,7 @@ impl Dao {
 }
 
 impl Dao {
-    pub fn save(&self, data: ParserResult) -> OpResult {
+    pub fn save(&self, _data: ParserResult) -> OpResult {
         self.drop_create_tables()?;
         Ok(())
     }
