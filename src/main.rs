@@ -1,22 +1,57 @@
-use std::{collections::HashMap, env, fs::File, io::BufReader};
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    fs::{self, File},
+    io::{BufRead, BufReader},
+    time::Instant,
+};
 
 use account::Account;
+use activity::Activity;
 use channel::{Channel, Message};
 use serde::Deserialize;
 use servers::Server;
 
 mod account;
+mod activity;
 mod channel;
 mod servers;
 
 fn main() {
+    let now = Instant::now();
     let dis_data_path = env::args().nth(1).expect("should be at least one argument");
     let user = read_user(&dis_data_path).unwrap();
     println!("{:#?}", user);
     let servers = read_servers(&dis_data_path).unwrap();
-    println!("{:#?}", servers);
+    println!("servers {}", servers.len());
     let messages = read_messages(&dis_data_path).unwrap();
-    println!("{:#?}", messages);
+    println!("messages {}", messages.len());
+    let activities = read_activities(&dis_data_path, ActivityType::Analytics).unwrap();
+    let event_types: HashSet<String> = activities
+        .iter()
+        .map(|activity| activity.event_type.to_string())
+        .collect();
+    println!("{}|{}", activities.len(), event_types.len());
+    let activities = read_activities(&dis_data_path, ActivityType::Modeling).unwrap();
+    let event_types: HashSet<String> = activities
+        .iter()
+        .map(|activity| activity.event_type.to_string())
+        .collect();
+    println!("{}|{}", activities.len(), event_types.len());
+    let activities = read_activities(&dis_data_path, ActivityType::Reporting).unwrap();
+    let event_types: HashSet<String> = activities
+        .iter()
+        .map(|activity| activity.event_type.to_string())
+        .collect();
+    println!("{}|{}", activities.len(), event_types.len());
+    let activities = read_activities(&dis_data_path, ActivityType::Tns).unwrap();
+    let event_types: HashSet<String> = activities
+        .iter()
+        .map(|activity| activity.event_type.to_string())
+        .collect();
+    println!("{}|{}", activities.len(), event_types.len());
+    let elapsed = now.elapsed();
+    println!("Elapsed {:.2?}", elapsed);
 }
 
 fn read_user(dis_data_path: &str) -> serde_json::Result<Account> {
@@ -89,4 +124,45 @@ struct ChannelInfo {
     channel_type: u8,
     recipients: Option<Vec<String>>,
     guild: Option<Server>,
+}
+
+fn read_activities(
+    dis_data_path: &str,
+    activity_type: ActivityType,
+) -> Result<Vec<Activity>, String> {
+    let mut activity_dir = fs::read_dir(format!(
+        "{}/activity/{}",
+        dis_data_path,
+        format!("{:?}", activity_type).to_lowercase()
+    ))
+    .map_err(|err| err.to_string())?;
+    let activity_entry = activity_dir
+        .next()
+        .ok_or("activity not found")?
+        .map_err(|err| err.to_string())?;
+    let activity_path = activity_entry
+        .path()
+        .as_os_str()
+        .to_string_lossy()
+        .to_string();
+    let activity_file = File::open(activity_path).map_err(|err| err.to_string())?;
+    let mut activity_reader = BufReader::new(activity_file);
+    let mut buf = String::new();
+    let mut activities: Vec<Activity> = Vec::new();
+    while let Ok(buf_len) = activity_reader.read_line(&mut buf) {
+        if buf_len == 0 {
+            break;
+        }
+        activities.push(serde_json::from_str(&buf).map_err(|err| err.to_string())?);
+        buf.clear();
+    }
+    Ok(activities)
+}
+
+#[derive(Debug)]
+enum ActivityType {
+    Analytics,
+    Modeling,
+    Reporting,
+    Tns,
 }
