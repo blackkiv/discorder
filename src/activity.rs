@@ -22,3 +22,11 @@ pub struct Activity {
     #[serde(flatten)]
     pub other: HashMap<String, Value>,
 }
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum ActivityType {
+    Analytics,
+    Modeling,
+    Reporting,
+    Tns,
+}
