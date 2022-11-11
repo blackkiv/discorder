@@ -11,7 +11,8 @@ mod parser;
 mod servers;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let dis_data_path = env::args().nth(1).expect("should be at least one argument");
+    let dis_data_path = env::args().nth(1).expect("missing discord data path");
+    let db_path = env::args().nth(2).expect("missing db path");
 
     let now = Instant::now();
     let parser = Parser::new(&dis_data_path);
@@ -20,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let elapsed = now.elapsed();
     println!("[Parsing] Elapsed {:.2?}", elapsed);
 
-    let dao = Dao::new("data.db")?;
+    let dao = Dao::new(&db_path)?;
 
     let now = Instant::now();
     dao.save(parser_result)?;

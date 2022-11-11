@@ -18,9 +18,9 @@ type BoxErrorResult<T> = Result<T, Box<dyn Error>>;
 
 pub struct ParserResult {
     pub account: Account,
-    // pub activities: HashMap<ActivityType, Vec<Activity>>,
-    // pub channels: Vec<Channel>,
-    // pub servers: Vec<Server>,
+    pub activities: HashMap<ActivityType, Vec<Activity>>,
+    pub channels: Vec<Channel>,
+    pub servers: Vec<Server>,
 }
 
 pub struct Parser {
@@ -38,14 +38,14 @@ impl Parser {
 impl Parser {
     pub fn parse(&self) -> Result<ParserResult, Box<dyn Error>> {
         let account = self.read_account()?;
-        // let servers = self.read_servers()?;
-        // let channels = self.read_channels()?;
-        // let activities = self.read_all_activities()?;
+        let servers = self.read_servers()?;
+        let channels = self.read_channels()?;
+        let activities = self.read_all_activities()?;
         Ok(ParserResult {
             account,
-            // activities,
-            // channels,
-            // servers,
+            activities,
+            channels,
+            servers,
         })
     }
 

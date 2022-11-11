@@ -1,15 +1,15 @@
-pub fn drop_create_tables() -> Vec<String> {
-    vec![
-        "drop table if exists accepted_languages;",
-        "drop table if exists accepted_languages_weighted;",
-        "drop table if exists account;",
-        "drop table if exists relationship;",
-        "drop table if exists channel;",
-        "drop table if exists channel_recipient;",
-        "drop table if exists message;",
-        "drop table if exists activity;",
-        "drop table if exists server;",
-        "
+pub fn drop_create_tables() -> String {
+    "
+        drop table if exists accepted_languages;
+        drop table if exists accepted_languages_weighted;
+        drop table if exists account;
+        drop table if exists relationship;
+        drop table if exists channel;
+        drop table if exists channel_recipient;
+        drop table if exists message;
+        drop table if exists activity;
+        drop table if exists server;
+        
         create table account (
             id text primary key not null,
             username text not null,
@@ -27,8 +27,6 @@ pub fn drop_create_tables() -> Vec<String> {
             boosting_started_at text,
             premium_started_at text
         );
-        ",
-        "
         create table relationship(
             id integer not null primary key autoincrement,
             account_id text not null,
@@ -41,66 +39,51 @@ pub fn drop_create_tables() -> Vec<String> {
             public_flags integer not null,
             foreign key (account_id) references account (id) on delete cascade
         );
-        ",
-        "
         create table server(id text primary key not null, name text not null);
-        ",
-        "
         create table channel(
             id text primary key not null,
             type integer not null,
             server_id text -- cannot be foreign key because it's nullable
         );
-        ",
-        "
         create table message(
             id text primary key not null,
             channel_id text not null,
             timestamp text not null,
-            contents text,
+            contents blob,
             attachments text,
             foreign key (channel_id) references channel (id) on delete cascade
         );
-        ",
-        "
         create table channel_recipient(
             id integer not null primary key autoincrement,
             channel_id text not null,
             recipient text not null,
             foreign key (channel_id) references channel (id) on delete cascade
         );
-        ",
-        "
         create table activity(
-            event_id text not null primary key,
+            id integer not null primary key autoincrement,
+            event_id text not null,
             event_type text not null,
+            activity_type text not null,
             user_id text not null,
             domain text not null,
             client_send_timestamp text not null,
             client_track_timestamp text not null,
-            timestamp text,
+            timestamp text not null,
             other blob not null,
             foreign key (user_id) references account (id) on delete cascade
         );
-        ",
-        "
         create table accepted_languages(
             id integer not null primary key autoincrement,
             event_id text not null,
             language text not null,
             foreign key (event_id) references activity (id) on delete cascade
         );
-        ",
-        "
         create table accepted_languages_weighted(
             id integer not null primary key autoincrement,
             event_id text not null,
             language text not null,
             foreign key (event_id) references activity (id) on delete cascade
         );
-    ",
-    ]
-    .iter()
-    .map(|val| val.to_string())
-    .collect()
+    "
+    .to_string()
 }
