@@ -1,5 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
+use indicatif::ProgressBar;
 use rusqlite::Connection;
 
 use crate::{
@@ -27,12 +28,17 @@ impl Dao {
 }
 
 impl Dao {
-    pub fn save(&self, data: ParserResult) -> OpResult {
+    pub fn save(&self, data: ParserResult, prog_bar: &ProgressBar) -> OpResult {
         self.drop_create_tables()?;
+        prog_bar.inc(1);
         self.save_account(data.account)?;
+        prog_bar.inc(1);
         self.save_servers(data.servers)?;
+        prog_bar.inc(1);
         self.save_channels(data.channels)?;
+        prog_bar.inc(1);
         self.save_activities(data.activities)?;
+        prog_bar.inc(1);
         Ok(())
     }
 

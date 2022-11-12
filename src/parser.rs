@@ -5,6 +5,7 @@ use std::{
     io::{BufRead, BufReader},
 };
 
+use indicatif::ProgressBar;
 use serde::Deserialize;
 
 use crate::{
@@ -36,11 +37,15 @@ impl Parser {
 }
 
 impl Parser {
-    pub fn parse(&self) -> Result<ParserResult, Box<dyn Error>> {
+    pub fn parse(&self, prog_bar: &ProgressBar) -> Result<ParserResult, Box<dyn Error>> {
         let account = self.read_account()?;
+        prog_bar.inc(1);
         let servers = self.read_servers()?;
+        prog_bar.inc(1);
         let channels = self.read_channels()?;
+        prog_bar.inc(1);
         let activities = self.read_all_activities()?;
+        prog_bar.inc(1);
         Ok(ParserResult {
             account,
             activities,
