@@ -9,4 +9,4 @@
 3. make sure that you have installed cargo. to install: https://doc.rust-lang.org/cargo/getting-started/installation.html
 4. clone this repository
 5. `cd discorder`
-6. `cargo run {path to folder with your discord data} {path to .db output file}` or `cargo build -r` and then run it as a native app (build output can be found in ./target/release/ folder)
+6. `cargo run {path to folder with your discord data} {path to .db output file}` or `cargo build -r` and then run it as a native app (build output can be found in ./target/release/ folder). Example: `cargo run ./discord-data data.db`
