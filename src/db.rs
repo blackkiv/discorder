@@ -74,7 +74,8 @@ impl Dao {
             self.db_connection.execute(
                 "
                 insert into relationship (
-                    account_id, relation_type, nickname, username, avatar, avatar_decoration, discriminator, public_flags
+                    account_id, relation_type, nickname, username, 
+                    avatar, avatar_decoration, discriminator, public_flags
                 ) values (
                     ?1, ?2, ?3, ?4, 
                     ?5, ?6, ?7, ?8
@@ -159,46 +160,67 @@ impl Dao {
 
     fn save_activities(&self, activities: HashMap<ActivityType, Vec<Activity>>) -> OpResult {
         for (activity_type, activities) in activities {
+            let mut activity_values = Vec::new();
+            let mut accepted_language_values = Vec::new();
+            let mut accepted_language_weighted_values = Vec::new();
             for activity in activities {
-                self.db_connection.execute(
-                    "
-                    insert into activity (
-                        event_id, event_type, activity_type, user_id, 
-                        domain, client_send_timestamp, 
-                        client_track_timestamp, timestamp, other
-                    ) values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
-                ",
-                    (
-                        &activity.event_id,
-                        activity.event_type,
-                        format!("{:?}", activity_type),
-                        activity.user_id,
-                        activity.domain,
-                        activity.client_send_timestamp,
-                        activity.client_track_timestamp,
-                        activity.timestamp,
-                        serde_json::to_string(&activity.other)?,
-                    ),
-                )?;
+                activity_values.push(format!(
+                    "({}, {}, {}, {}, {}, {}, {}, {}, {})",
+                    str_to_sql_str(&activity.event_id),
+                    str_to_sql_str(&activity.event_type),
+                    str_to_sql_str(format!("{:?}", activity_type).as_str()),
+                    str_to_sql_str(&activity.user_id),
+                    str_to_sql_str(&activity.domain),
+                    str_to_sql_str(&activity.client_send_timestamp),
+                    str_to_sql_str(&activity.client_track_timestamp),
+                    str_to_sql_str(&activity.timestamp),
+                    str_to_sql_str(serde_json::to_string(&activity.other)?.as_str()),
+                ));
+
                 for accepted_language in activity.accepted_languages {
-                    self.db_connection.execute(
-                        "insert into accepted_languages (event_id, language) values (?1, ?2);",
-                        (&activity.event_id, accepted_language),
-                    )?;
+                    accepted_language_values.push(format!(
+                        "({}, {})",
+                        str_to_sql_str(&activity.event_id),
+                        str_to_sql_str(&accepted_language)
+                    ));
                 }
                 for accepted_language_weighted in activity.accepted_languages_weighted {
-                    self.db_connection.execute(
-                        "insert into accepted_languages_weighted (event_id, language) values (?1, ?2);",
-                        (&activity.event_id, accepted_language_weighted),
-                    )?;
+                    accepted_language_weighted_values.push(format!(
+                        "({}, {})",
+                        str_to_sql_str(&activity.event_id),
+                        str_to_sql_str(&accepted_language_weighted)
+                    ));
                 }
             }
+            self.execute_batch(
+                "insert into activity (
+                    event_id, event_type, activity_type, user_id, 
+                    domain, client_send_timestamp, 
+                    client_track_timestamp, timestamp, other
+                )",
+                activity_values,
+            )?;
+            self.execute_batch(
+                "insert into accepted_languages (event_id, language)",
+                accepted_language_values,
+            )?;
+            self.execute_batch(
+                "insert into accepted_languages_weighted (event_id, language)",
+                accepted_language_weighted_values,
+            )?;
         }
 
+        Ok(())
+    }
+
+    fn execute_batch(&self, insert: &str, values: Vec<String>) -> OpResult {
+        let values = values.join(",\n");
+        let sql = format!("{} values {}", insert, values);
+        self.db_connection.execute(&sql, ())?;
         Ok(())
     }
 }
 
 fn str_to_sql_str(val: &str) -> String {
-    format!("'{}'", val)
+    format!("'{}'", val.replace('\'', "''"))
 }

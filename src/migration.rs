@@ -1,5 +1,6 @@
 pub fn drop_create_tables() -> String {
     "
+        begin;
         drop table if exists accepted_languages;
         drop table if exists accepted_languages_weighted;
         drop table if exists account;
@@ -84,6 +85,7 @@ pub fn drop_create_tables() -> String {
             language text not null,
             foreign key (event_id) references activity (id) on delete cascade
         );
+        commit;
     "
     .to_string()
 }
